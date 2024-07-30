@@ -26,6 +26,7 @@ public class UserService {
         return this.modelMapper.map(userEntity, UserDTO.class);
     }
     public UserDTO createNewUser(UserDTO userDTO){
+        System.out.println("WE ARE INSIDE THE HERE");
         UserEntity userEntityMapped = modelMapper.map(userDTO, UserEntity.class);
         return modelMapper.map(this.userRepository.save(userEntityMapped), UserDTO.class);
     }

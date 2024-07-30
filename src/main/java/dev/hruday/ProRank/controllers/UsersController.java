@@ -14,10 +14,12 @@ import java.net.http.HttpResponse;
 @RequestMapping("/user")
 public class UsersController {
 
+//    @Autowired
     private final UserService userService;
 
     @Autowired
     public UsersController(UserService userService) {
+        System.out.println("THIS IS CONSTRUCTOR zzzz");
         this.userService = userService;
     }
 
@@ -28,6 +30,10 @@ public class UsersController {
 
     @PostMapping(path = "/createUser")
     public UserDTO create_user(@RequestBody UserDTO userDTO){
+        System.out.println("WE HIT THE RIGHT ENDPOINT");
+        System.out.println("WE HIT THE RIGHT ENDPOINT");
+        System.out.println("WE HIT THE RIGHT ENDPOINT");
+        System.out.println("WE HIT THE RIGHT ENDPOINT");
          return this.userService.createNewUser(userDTO);
     }
 
