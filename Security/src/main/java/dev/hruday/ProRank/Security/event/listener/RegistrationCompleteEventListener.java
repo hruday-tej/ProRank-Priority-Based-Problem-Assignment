@@ -3,6 +3,7 @@ package dev.hruday.ProRank.Security.event.listener;
 import dev.hruday.ProRank.Security.entity.User;
 import dev.hruday.ProRank.Security.event.RegistrationCompleteEvent;
 import dev.hruday.ProRank.Security.service.UserServericeImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 @Component
+@Slf4j
 public class RegistrationCompleteEventListener implements ApplicationListener<RegistrationCompleteEvent> {
 
     @Autowired
@@ -22,6 +24,7 @@ public class RegistrationCompleteEventListener implements ApplicationListener<Re
         String token = UUID.randomUUID().toString();
         userService.saveVerificationTokenForUser(token, user);
 //        send mail to user
-
+        String url = event.getApplicationUrl() + "/verifyRegistration?token="+token;
+        log.info("click the link to verify your account : {}", url);
     }
 }

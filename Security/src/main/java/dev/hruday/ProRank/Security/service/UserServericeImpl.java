@@ -1,18 +1,24 @@
 package dev.hruday.ProRank.Security.service;
 
 import dev.hruday.ProRank.Security.entity.User;
+import dev.hruday.ProRank.Security.entity.VerificationToken;
 import dev.hruday.ProRank.Security.model.UserModel;
 import dev.hruday.ProRank.Security.repository.UserRepository;
+import dev.hruday.ProRank.Security.repository.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+
+import java.util.Calendar;
 
 
 @Service
 public class UserServericeImpl implements UserService{
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private VerificationTokenRepository verificationTokenRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -28,5 +34,29 @@ public class UserServericeImpl implements UserService{
 
         userRepository.save(user);
         return user;
+    }
+
+    @Override
+    public void saveVerificationTokenForUser(String token, User user) {
+        VerificationToken verificationToken = new VerificationToken(user, token);
+        verificationTokenRepository.save(verificationToken);
+    }
+
+    @Override
+    public String validateVerificationToken(String token) {
+        VerificationToken verificationToken = verificationTokenRepository.findByToken(token);
+        if(verificationToken == null)return "Invalid Token";
+
+        User user = verificationToken.getUser();
+        Calendar calendar = Calendar.getInstance();
+
+        if(verificationToken.getExpirationTime().getTime() - calendar.getTime().getTime() <= 0){
+            verificationTokenRepository.delete(verificationToken);
+            return "Expired";
+        }
+
+        user.setEnabled(true);
+        userRepository.save(user);
+        return "valid";
     }
 }
