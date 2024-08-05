@@ -8,10 +8,14 @@ import dev.hruday.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
-@RequestMapping(path = "/user")
+@RequestMapping(path = "/auth")
 public class RegistrationController {
 
     private final UserService userService;
@@ -35,11 +39,14 @@ public class RegistrationController {
 //    3. Change Password
 
     @PostMapping("/register")
-    public String registerUser(@RequestBody UserDTO userDTO, final HttpServletRequest httpServletRequest){
+    public ResponseEntity<String> registerUser(@RequestBody UserDTO userDTO, final HttpServletRequest httpServletRequest){
         UserEntity userEntity = userService.registerUser(userDTO);
+        if(userEntity == null){
+            return new ResponseEntity<>("Username is Taken", HttpStatus.BAD_REQUEST);
+        }
         publisher.publishEvent(new RegistrationCompleteEvent(userEntity, applicationUrl(httpServletRequest)));
 
-        return "Success";
+        return new ResponseEntity<>("User Registered Successfully", HttpStatus.OK);
     }
 
     @GetMapping(path = "/verifyRegistration")

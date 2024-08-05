@@ -1,4 +1,4 @@
-package dev.hruday.config;
+package dev.hruday.config.security;
 
 import dev.hruday.entity.Role;
 import dev.hruday.entity.UserEntity;
