@@ -1,9 +1,10 @@
 package dev.hruday.service;
 
 
-import dev.hruday.entity.User;
+import dev.hruday.dto.UserLoginDTO;
+import dev.hruday.entity.UserEntity;
 import dev.hruday.entity.VerificationToken;
-import dev.hruday.model.UserModel;
+import dev.hruday.dto.UserDTO;
 import dev.hruday.repository.UserRepository;
 import dev.hruday.repository.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,21 +26,21 @@ public class UserServericeImpl implements UserService{
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public User registerUser(UserModel userModel) {
-        User user = new User();
-        user.setEmail(userModel.getEmail());
-        user.setFirstName(userModel.getFirstName());
-        user.setLastName(userModel.getLastName());
-        user.setRole("USER");
-        user.setPassword(passwordEncoder.encode(userModel.getPassword()));
+    public UserEntity registerUser(UserDTO userDTO) {
+        UserEntity userEntity = new UserEntity();
+        userEntity.setEmail(userDTO.getEmail());
+        userEntity.setFirstName(userDTO.getFirstName());
+        userEntity.setLastName(userDTO.getLastName());
+//        userEntity.setRole("USER");
+        userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
-        userRepository.save(user);
-        return user;
+        userRepository.save(userEntity);
+        return userEntity;
     }
 
     @Override
-    public void saveVerificationTokenForUser(String token, User user) {
-        VerificationToken verificationToken = new VerificationToken(user, token);
+    public void saveVerificationTokenForUser(String token, UserEntity userEntity) {
+        VerificationToken verificationToken = new VerificationToken(userEntity, token);
         verificationTokenRepository.save(verificationToken);
     }
 
@@ -48,7 +49,7 @@ public class UserServericeImpl implements UserService{
         VerificationToken verificationToken = verificationTokenRepository.findByToken(token);
         if(verificationToken == null)return "Invalid Token";
 
-        User user = verificationToken.getUser();
+        UserEntity userEntity = verificationToken.getUserEntity();
         Calendar calendar = Calendar.getInstance();
 
         if(verificationToken.getExpirationTime().getTime() - calendar.getTime().getTime() <= 0){
@@ -56,8 +57,13 @@ public class UserServericeImpl implements UserService{
             return "Expired";
         }
 
-        user.setEnabled(true);
-        userRepository.save(user);
+        userEntity.setEnabled(true);
+        userRepository.save(userEntity);
         return "valid";
+    }
+
+    @Override
+    public UserEntity loginUser(UserLoginDTO userLoginDTO) {
+        return userRepository.findUserByEmail(userLoginDTO.getEmail());
     }
 }

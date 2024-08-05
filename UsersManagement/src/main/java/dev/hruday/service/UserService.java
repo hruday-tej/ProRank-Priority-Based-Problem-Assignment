@@ -1,13 +1,16 @@
 package dev.hruday.service;
 
 
-import dev.hruday.entity.User;
-import dev.hruday.model.UserModel;
+import dev.hruday.dto.UserLoginDTO;
+import dev.hruday.entity.UserEntity;
+import dev.hruday.dto.UserDTO;
 
 public interface UserService {
-    User registerUser(UserModel userModel);
+    UserEntity registerUser(UserDTO userDTO);
 
-    void saveVerificationTokenForUser(String token, User user);
+    void saveVerificationTokenForUser(String token, UserEntity userEntity);
 
     String validateVerificationToken(String token);
+
+    UserEntity loginUser(UserLoginDTO userLoginDTO);
 }

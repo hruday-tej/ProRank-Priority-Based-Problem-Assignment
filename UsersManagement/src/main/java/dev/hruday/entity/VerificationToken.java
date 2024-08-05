@@ -22,12 +22,12 @@ public class VerificationToken {
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "FK_USER_VERIFY_TOKEN"))
-    private User user;
+    private UserEntity userEntity;
 
-    public VerificationToken(User user, String token){
+    public VerificationToken(UserEntity userEntity, String token){
         super();
         this.token = token;
-        this.user = user;
+        this.userEntity = userEntity;
         this.expirationTime = calcilateExpirationDate(EXPIRATION_TIME);
     }
 

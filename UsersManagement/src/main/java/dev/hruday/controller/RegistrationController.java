@@ -1,9 +1,9 @@
 package dev.hruday.controller;
 
 
-import dev.hruday.entity.User;
+import dev.hruday.entity.UserEntity;
 import dev.hruday.event.RegistrationCompleteEvent;
-import dev.hruday.model.UserModel;
+import dev.hruday.dto.UserDTO;
 import dev.hruday.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,16 +11,21 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping(path = "/user")
 public class RegistrationController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    private final ApplicationEventPublisher publisher;
 
     @Autowired
-    private ApplicationEventPublisher publisher;
+    public RegistrationController(UserService userService, ApplicationEventPublisher publisher) {
+        this.userService = userService;
+        this.publisher = publisher;
+    }
 
     @GetMapping(path = "/hello")
-    public String welcomScreen(){
+    public String welcomeScreen(){
         return "Welcome to the server!!";
     }
 
@@ -30,9 +35,9 @@ public class RegistrationController {
 //    3. Change Password
 
     @PostMapping("/register")
-    public String registerUser(@RequestBody UserModel userModel, final HttpServletRequest httpServletRequest){
-        User user = userService.registerUser(userModel);
-        publisher.publishEvent(new RegistrationCompleteEvent(user, applicationUrl(httpServletRequest)));
+    public String registerUser(@RequestBody UserDTO userDTO, final HttpServletRequest httpServletRequest){
+        UserEntity userEntity = userService.registerUser(userDTO);
+        publisher.publishEvent(new RegistrationCompleteEvent(userEntity, applicationUrl(httpServletRequest)));
 
         return "Success";
     }

@@ -1,6 +1,6 @@
 package dev.hruday.event.listener;
 
-import dev.hruday.entity.User;
+import dev.hruday.entity.UserEntity;
 import dev.hruday.event.RegistrationCompleteEvent;
 import dev.hruday.service.UserServericeImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -14,15 +14,19 @@ import java.util.UUID;
 @Slf4j
 public class RegistrationCompleteEventListener implements ApplicationListener<RegistrationCompleteEvent> {
 
+    private final UserServericeImpl userService;
+
     @Autowired
-    private UserServericeImpl userService;
+    public RegistrationCompleteEventListener(UserServericeImpl userService) {
+        this.userService = userService;
+    }
 
     @Override
     public void onApplicationEvent(RegistrationCompleteEvent event) {
 //        create verification token for the user with link
-        User user = event.getUser();
+        UserEntity userEntity = event.getUserEntity();
         String token = UUID.randomUUID().toString();
-        userService.saveVerificationTokenForUser(token, user);
+        userService.saveVerificationTokenForUser(token, userEntity);
 //        send mail to user
         String url = event.getApplicationUrl() + "/verifyRegistration?token="+token;
         log.info("click the link to verify your account : {}", url);

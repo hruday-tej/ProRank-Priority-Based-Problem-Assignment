@@ -1,22 +1,21 @@
 package dev.hruday.event;
 
 
-import dev.hruday.entity.User;
+import dev.hruday.entity.UserEntity;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
 
 @Getter
 @Setter
 public class RegistrationCompleteEvent extends ApplicationEvent {
 
-    private User user;
+    private UserEntity userEntity;
     private String applicationUrl;
 
-    public RegistrationCompleteEvent(User user, String applicationUrl){
-        super(user);
-        this.user = user;
+    public RegistrationCompleteEvent(UserEntity userEntity, String applicationUrl){
+        super(userEntity);
+        this.userEntity = userEntity;
         this.applicationUrl = applicationUrl;
     }
 }
