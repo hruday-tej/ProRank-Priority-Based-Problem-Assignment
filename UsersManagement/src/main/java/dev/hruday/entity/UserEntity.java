@@ -2,18 +2,24 @@ package dev.hruday.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "users")
-public class UserEntity {
+public class UserEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,10 +29,41 @@ public class UserEntity {
     private String email;
     @Column(length = 60)
     private String password;
-
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-    inverseJoinColumns = @JoinColumn(name="role_id", referencedColumnName = "id"))
-    private List<Role> roles = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    private Role role;
     private boolean enabled = false;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role.name()));
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    public boolean isEnabled(){
+        return false;
+    }
 }
