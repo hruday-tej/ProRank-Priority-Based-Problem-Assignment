@@ -39,14 +39,14 @@ public class RegistrationController {
 //    3. Change Password
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody UserDTO userDTO, final HttpServletRequest httpServletRequest){
-        UserEntity userEntity = userService.registerUser(userDTO);
-        if(userEntity == null){
-            return new ResponseEntity<>("Username is Taken", HttpStatus.BAD_REQUEST);
-        }
-        publisher.publishEvent(new RegistrationCompleteEvent(userEntity, applicationUrl(httpServletRequest)));
+    public ResponseEntity<AuthenticationResponse> registerUser(@RequestBody UserDTO userDTO, final HttpServletRequest httpServletRequest){
+//        UserEntity userEntity = userService.registerUser(userDTO);
+//        if(userEntity == null){
+//            return new ResponseEntity<>("Username is Taken", HttpStatus.BAD_REQUEST);
+//        }
+//        publisher.publishEvent(new RegistrationCompleteEvent(userEntity, applicationUrl(httpServletRequest)));
 
-        return new ResponseEntity<>("User Registered Successfully", HttpStatus.OK);
+        return ResponseEntity.ok(userService.registerUser(userDTO));
     }
 
     @GetMapping(path = "/verifyRegistration")

@@ -2,31 +2,23 @@ package dev.hruday.service;
 
 
 import dev.hruday.config.security.JWTGenerator;
-import dev.hruday.dto.AuthReponseDTO;
+import dev.hruday.controller.AuthenticationResponse;
 import dev.hruday.dto.UserLoginDTO;
 import dev.hruday.entity.Role;
 import dev.hruday.entity.UserEntity;
 import dev.hruday.entity.VerificationToken;
 import dev.hruday.dto.UserDTO;
-import dev.hruday.repository.RoleRepository;
 import dev.hruday.repository.UserRepository;
 import dev.hruday.repository.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Optional;
 
 
 @Service
@@ -37,27 +29,30 @@ public class UserServericeImpl implements UserService{
 
     private final PasswordEncoder passwordEncoder;
 
-    private final RoleRepository roleRepository;
-
     private final AuthenticationManager authenticationManager;
 
-    private JWTGenerator jwtGenerator;
+//    private JWTGenerator jwtGenerator;
+
+    private final JwtService jwtService;
 
     @Autowired
-    public UserServericeImpl(UserRepository userRepository, VerificationTokenRepository verificationTokenRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository, AuthenticationManager authenticationManager, JWTGenerator jwtGenerator) {
+    public UserServericeImpl(UserRepository userRepository, VerificationTokenRepository verificationTokenRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JWTGenerator jwtGenerator, JwtService jwtService) {
         this.userRepository = userRepository;
         this.verificationTokenRepository = verificationTokenRepository;
         this.authenticationManager = authenticationManager;
         this.passwordEncoder = passwordEncoder;
-        this.roleRepository = roleRepository;
-        this.jwtGenerator = jwtGenerator;
+//        this.roleRepository = roleRepository;
+        this.jwtService = jwtService;
+//        this.jwtGenerator = jwtGenerator;
     }
 
     @Override
-    public UserEntity registerUser(UserDTO userDTO) {
+    public AuthenticationResponse registerUser(UserDTO userDTO) {
+        System.out.println("Inside here register user");
 //        TODO:
 //        return username is taken
         if(userRepository.existsByEmail(userDTO.getEmail())){
+            System.out.println("User lready Exists");
             return null;
         }
 
@@ -66,20 +61,18 @@ public class UserServericeImpl implements UserService{
         userEntity.setFirstName(userDTO.getFirstName());
         userEntity.setLastName(userDTO.getLastName());
         userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        Role role;
-
-        if(userEntity.getEmail().contains(".org")){
-            System.out.println(roleRepository.findRoleByRoleName("HOST"));
-            role = roleRepository.findRoleByRoleName("HOST").get();
-        }else{
-            System.out.println(roleRepository.findRoleByRoleName("PARTICIPANT"));
-            role = roleRepository.findRoleByRoleName("PARTICIPANT").get();
-        }
-
-        userEntity.setRoles(Collections.singletonList(role));
+        userEntity.setRole(Role.PARTICIPANT);
+        System.out.println("Created new User Entity");
 
         userRepository.save(userEntity);
-        return userEntity;
+
+        System.out.println("User saved in db");
+
+        var jwtToken = jwtService.generateToken(userEntity);
+        System.out.println("token generated  ->  " + jwtToken);
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
     }
 
     @Override
@@ -107,25 +100,17 @@ public class UserServericeImpl implements UserService{
     }
 
     @Override
-    public ResponseEntity<AuthReponseDTO> loginUser(UserLoginDTO userLoginDTO) {
-//        try {
-            // Attempt to authenticate the user
-            Authentication authentication = authenticationManager.authenticate(
+    public AuthenticationResponse loginUser(UserLoginDTO userLoginDTO) {
+        System.out.println("User ttrying to login -> " + userLoginDTO.getEmail() + " --- " + userLoginDTO.getPassword());
+        var user = userRepository.findUserByEmail(userLoginDTO.getEmail()).orElseThrow();
+        System.out.println("User from db - > " + user.getEmail() + " --- " + user.getFirstName());
+            authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(userLoginDTO.getEmail(), userLoginDTO.getPassword()));
+//            SecurityContextHolder.getContext().setAuthentication(authentication);
+        System.out.println("User Logged In Successfully");
 
-            // Set the authentication in the security context
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            String token = jwtGenerator.generateToken(authentication);
-            return new ResponseEntity<>(new AuthReponseDTO(token), HttpStatus.OK);
-//        } catch (BadCredentialsException e) {
-//            // Handle incorrect username or password
-//            return new ResponseEntity<Optional>("Invalid username or password", HttpStatus.UNAUTHORIZED);
-//        } catch (InternalAuthenticationServiceException e) {
-//            // Handle other internal authentication issues
-//            return new ResponseEntity<Optional>("Authentication service error", HttpStatus.INTERNAL_SERVER_ERROR);
-//        } catch (AuthenticationException e) {
-//            // Handle general authentication exceptions
-//            return new ResponseEntity<String>("Authentication failed", HttpStatus.UNAUTHORIZED);
-//        }
+            var jwtToken = jwtService.generateToken(user);
+        System.out.println("generating token from the db -> " + jwtToken);
+            return AuthenticationResponse.builder().token(jwtToken).build();
     }
 }

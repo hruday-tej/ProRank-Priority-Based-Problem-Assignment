@@ -28,8 +28,8 @@ public class LoginController {
     }
 
     @PostMapping(path = "/login")
-    public ResponseEntity<AuthReponseDTO> loginUser(@RequestBody UserLoginDTO userLoginDTO) {
+    public ResponseEntity<AuthenticationResponse> loginUser(@RequestBody UserLoginDTO userLoginDTO) {
 //        System.out.println("INSIDE LOGIN 0000000000000000");
-        return userService.loginUser(userLoginDTO);
+        return ResponseEntity.ok(userService.loginUser(userLoginDTO));
     }
 }
